@@ -34,6 +34,10 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/static/view.html')
   });
 
+  app.get('/board/edit', (req, res) => {
+    res.sendFile(__dirname + '/static/edit.html')
+  });
+
 app.listen(port, () => {
     console.log(port, "포트로 서버가 켜졌다!!!");
 });

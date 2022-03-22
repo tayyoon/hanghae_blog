@@ -31,9 +31,6 @@ router.get("/board/:num", async (req, res) =>{
 router.delete("/board/:num", async(req, res) =>{
 	const { num } = req.params;	
 	const { password } = req.body;
-
-  board.splice(num, 1);
-  
 	
 	const existBoard = await Board.find({num: Number(num), password: password});
 
@@ -54,34 +51,46 @@ router.put("/board/:num", async (req, res)=>{
 	const { num } = req.params;	
 	const { title } = req.body;
 	const { content } = req.body;
+	const { name } = req.body; 
 	const { password } = req.body;
 
 	const existBoard = await Board.find({num: Number(num), password: password});	
 
 	if(existBoard.length){
-		await Board.updateOne({num: Number(num)}, { $set: {title, content }}) 	
+		await Board.updateOne({num: Number(num)}, { $set: {title, content, name }}) 	
 	}else{
 		return res.status(400).json({
 			errorMessage: "비밀번호가 다릅니다."	
 		});	
 	}
 	
-	 res.json({success: true})
+	 res.json({success: "수정완료"})
 
 });
 
 // 글쓰기!!!!
 router.post("/board", async (req, res) => {
-	var today = new Date();
-	var date = today.toLocaleString()		
+	let today = new Date();
+	let date = today.toLocaleString()		
 	
 	const { title, name, password, content } = req.body;	
 	console.log({ title, name, password, content })
 
 	let num = 0
 	const Post_ls = await Board.find();
-	console.log(Post_ls)
-	num = Post_ls.length + 1
+	if(Post_ls.length) {
+		num = Post_ls[Post_ls.length-1]['num'] + 1
+	}else {
+		num = 1
+	}
+
+	if( !title || !name || !password || !content) {
+		return res.status(400).json({
+			errorMessage: "빈칸없이 모두 입력하세요"
+		});
+	}
+	// console.log(Post_ls)
+	// num = Post_ls.length + 1
 
 	const createdBoard = await Board.create({ title, name, password, content, num, date });
 
