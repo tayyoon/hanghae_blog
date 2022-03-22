@@ -1,5 +1,4 @@
 const express = require("express");
-const board = require("../schemas/board");
 const Board = require("../schemas/board");
 const router = express.Router();
 

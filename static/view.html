@@ -60,21 +60,14 @@
                 
             });
         } 
-        function delete_() {
-            $.ajax({
-                type: "DELETE",
-                url: `/api/board/${num}`,
-                data: {},
-                success: function (response) {
-                    location.href="/";
-        }
+        
     </script>
 </head>
 <body>
    
     <div class="board_wrap">
         <div class="board_title">
-            <strong onclick="window.location.href = '/'">항해블로그</strong>
+            <strong >항해블로그</strong>
             <!-- <p>공지사항을 빠르고 정확하게 안내해드립니다.</p> -->
         </div>
         <div class="board_view_wrap">
@@ -109,8 +102,7 @@
             </div>
             <div class="bt_wrap">
                 <a href="/" class="on">목록</a>
-                <a href="edit.html">수정</a>  
-                <button onclick="delete_()">삭제</button>              
+                <a href="edit.html">수정</a>             
             </div>
         </div>
     </div>

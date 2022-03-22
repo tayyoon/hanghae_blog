@@ -9,7 +9,7 @@ const boardsRouter = require("./routes/boards");
 
 // 미들웨어
 const requestMiddleware = (req, res, next) => {
-    console.log("Request URL:", res.originalUrl, " - ", new Date());
+    console.log("Request URL:", req.originalUrl, " - ", new Date());
     next();
 }               // 함수로 만들어서 아래 미들웨어에서 바로 변수를 불러서 사용
 
