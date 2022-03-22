@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>항해블로그</title>
+    <link rel="stylesheet" href="./css/style.css">
+
+
+     <script>
+         const quaryString = window.location.search;
+         console.log(quaryString)
+         const urlParams = new URLSearchParams(quaryString);
+         console.log(urlParams)
+         const num = urlParams.get("num");
+         console.log(num)
+         
+        $(document).ready(function () {  
+            view_board();
+        });
+        function view_board() {
+
+            $.ajax({
+                type: "GET",
+                url: `/api/board/${num}`,
+                data: {},
+                success: function (response) {
+                    console.log(response)
+                    let rows = response['board']    
+
+                    let title = rows['title']
+                    let num  = rows['num']
+                    let name = rows['name']
+                    let date = rows['date'].substring(0,11)  
+                    let content = rows['content']                    
+
+                        let temp_html =`<div class="title">
+                                            ${title}
+                                        </div>
+                                        <div class="info">
+                                            <dl>
+                                                <dt>번호</dt>
+                                                <dd>${num}</dd>
+                                            </dl>
+                                            <dl>
+                                                <dt>작성자</dt>
+                                                <dd>${name}</dd>
+                                            </dl>
+                                            <dl>
+                                                <dt>작성일</dt>
+                                                <dd>${date}</dd>
+                                            </dl>                    
+                                        </div>
+                                        <div class="cont">
+                                         ${content}
+                                        </div>`                                                                                                  
+                    $('#board_view').append(temp_html)
+                    }
+                
+            });
+        } 
+        function delete_() {
+            $.ajax({
+                type: "DELETE",
+                url: `/api/board/${num}`,
+                data: {},
+                success: function (response) {
+                    location.href="/";
+        }
+    </script>
+</head>
+<body>
+   
+    <div class="board_wrap">
+        <div class="board_title">
+            <strong onclick="window.location.href = '/'">항해블로그</strong>
+            <!-- <p>공지사항을 빠르고 정확하게 안내해드립니다.</p> -->
+        </div>
+        <div class="board_view_wrap">
+            <div id="board_view" class="board_view">
+                <!-- <div class="title">
+                    글 제목이 들어갑니다.
+                </div>
+                <div class="info">
+                    <dl>
+                        <dt>번호</dt>
+                        <dd>1</dd>
+                    </dl>
+                    <dl>
+                        <dt>글쓴이</dt>
+                        <dd>김이름</dd>
+                    </dl>
+                    <dl>
+                        <dt>작성일</dt>
+                        <dd>2021.1.16</dd>
+                    </dl>                    
+                </div>
+                <div class="cont">
+                    글 내용이 들어갑니다<br>
+                    글 내용이 들어갑니다<br>
+                    글 내용이 들어갑니다<br>
+                    글 내용이 들어갑니다<br>
+                    글 내용이 들어갑니다<br>
+                    글 내용이 들어갑니다<br>
+                    글 내용이 들어갑니다<br>
+                    글 내용이 들어갑니다
+                </div> -->
+            </div>
+            <div class="bt_wrap">
+                <a href="/" class="on">목록</a>
+                <a href="edit.html">수정</a>  
+                <button onclick="delete_()">삭제</button>              
+            </div>
+        </div>
+    </div>
+</body>
+</html>
