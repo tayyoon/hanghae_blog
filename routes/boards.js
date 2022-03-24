@@ -43,7 +43,7 @@ router.delete("/board/:num", async(req, res) =>{
 		});	
 	}
 
-	res.json({success: true});
+	res.json({success: "게시글이 삭제되었습니다."});
 });
 
 // 글 수정하기
@@ -64,7 +64,7 @@ router.put("/board/:num", async (req, res)=>{
 		});	
 	}
 	
-	 res.json({success: "수정완료"})
+	 res.json({success: "게시글이 수정되었습니다."})
 
 });
 
@@ -94,7 +94,7 @@ router.post("/board", async (req, res) => {
 
 	const createdBoard = await Board.create({ title, name, password, content, num, date });
 
-	res.json({ board : "등록 완료!!" });
+	res.json({ board : "게시판 글쓰기 완료!!" });
 });
 
 
