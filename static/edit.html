@@ -4,10 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <title>항해블로그</title>
+    <title>항해_블로그</title>
     <link rel="stylesheet" href="/style.css">
 
     <script>
+         if(!localStorage.getItem("token")){     
+             alert('로그인이 필요합니다.')    
+               window.location.href='/login'
+            };
+        // getSelf(function (u) {
+        //         user = u;
+        //     });
+
+        // function getSelf(callback) {
+            
+        // $.ajax({
+        //     type: "GET",
+        //     url: "/api/users/me",
+        //     headers: {
+        //     authorization: `Bearer ${localStorage.getItem("token")}`,
+        //     },
+        //     success: function (response) {
+        //         callback(response.user);
+        //     },
+        //     error: function (xhr, status, error) {
+        //         console.log(status)
+        //     if (status === 401) {
+        //         alert("로그인이 필요합니다.");
+        //         window.location.href = "/login";
+        //     } else {
+        //         localStorage.clear();
+        //         alert("알 수 없는 문제가 발생했습니다. 관리자에게 문의하세요.");
+        //         window.location.href = "/";
+        //     }
+            
+        //     },
+        // });
+        // };
+
         const quaryString = window.location.search;
          console.log(quaryString)
          const urlParams = new URLSearchParams(quaryString);
@@ -23,6 +57,9 @@
             $.ajax({
                 type: "GET",
                 url: `/api/board/${num}`,
+                 headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
                 data: {},
                 success: function (response) {
                     console.log(response)
@@ -69,6 +106,9 @@
                  type: "PUT",
                  url: `/api/board/${num}`,
                  contentType: "application/json",
+                 headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
                  data: JSON.stringify({
                     title : title_give,
                     name: name_give,
@@ -94,6 +134,9 @@
                  type: "DELETE",
                  url: `/api/board/${num}`,
                  contentType: "application/json",
+                 headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
                  data: JSON.stringify({                
                     password: password_give,                 
                  }),                 

@@ -4,10 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+     <!-- Bootstrap CSS -->
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+     
     <title>항해블로그</title>
     <link rel="stylesheet" href="/style.css">
 
     <script>
+//         getSelf(function (u) {
+//         user = u;
+//       });
+
+//       function getSelf(callback) {
+//   $.ajax({
+//     type: "GET",
+//     url: "/api/users/me",
+//     headers: {
+//       authorization: `Bearer ${localStorage.getItem("token")}`,
+//     },
+//     success: function (response) {
+//       callback(response.user);
+//     },
+//     error: function (xhr, status, error) {
+//       if (status == 401) {
+//         alert("로그인이 필요합니다.");
+//       } else {
+//         localStorage.clear();
+//         alert("알 수 없는 문제가 발생했습니다. 관리자에게 문의하세요.");
+//       }
+//       window.location.href = "/";
+//     },
+//   });
+// }
+
+
         $(document).ready(function () {  
              show_board();
          });
@@ -16,6 +48,9 @@
              $.ajax({
                  type: "GET",
                  url: "/api/board",
+                //  headers: {
+                //     autorization: `Bearer ${localStorage.getItem('token')}`,
+                // },
                  data: {},
                  success: function (response) {                    
                      let rows = response['board']
@@ -37,6 +72,14 @@
                  }
              });
          } 
+         function logout () {
+            localStorage.clear();
+            alert('로그아웃 성공!')
+            window.location.href =  '/';
+            $('#logout').hide();
+        };
+
+
      </script>
 </head>
 <body>
@@ -46,6 +89,9 @@
             <strong onclick="window.location.href = '/'">항해블로그</strong>
             <!-- <p>공지사항을 빠르고 정확하게 안내해드립니다.</p> -->
         </div>
+        <div class="bt_wrap" style="text-align: right; margin-bottom: 5px;"> 
+            <a href="/login" class="on" id="login" >로그인</a>
+            <a class="on logout" onclick="logout()" id="logout">로그아웃</a></div>
         <div class="board_list_wrap">
             <div class="board_list">
                 <div class="top">

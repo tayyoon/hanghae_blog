@@ -24,6 +24,9 @@
             $.ajax({
                 type: "GET",
                 url: `/api/board/${num}`,
+                // headers: {
+                //     autorization: `Bearer ${localStorage.getItem('token')}`,
+                // },
                 data: {},
                 success: function (response) {
                     console.log(response)
