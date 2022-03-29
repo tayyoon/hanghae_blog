@@ -117,20 +117,21 @@ router.get("/board/:num",authMiddleware, async (req, res) =>{
 
 // 글 상세조회, 댓글조회 (로그인 시)
 
-// router.get("/board/:num", authMiddleware, async (req, res) =>{
-// 	const {num} = req.params;
-// 	console.log(num);
-// 	const postNum = req.params.num;
-// 	const {user} = res.locals;
+router.get("/comment/:num", authMiddleware, async (req, res) =>{
+	const {num} = req.params;
+	console.log(num);
+	const postNum = req.params.num;
+	const {user} = res.locals;
+	let nickname = user.nickname;
   
-// 	const comment = await Comment.find({postNum});
-// 	const [board] = await Board.find({ num: Number(num) });
+	const comment = await Comment.find({postNum, nickname: nickname});
+	const [board] = await Board.find({ num: Number(num) });
   
-// 	res.json({
-// 	  board,
-// 	  comment,
-// 	});
-//   });
+	res.json({
+	  board,
+	  comment,
+	});
+  });
 
 // 글 지우기
 router.delete("/board/:num",authMiddleware, async(req, res) =>{
@@ -138,10 +139,8 @@ router.delete("/board/:num",authMiddleware, async(req, res) =>{
 	const { password } = req.body;
 	const postNum = req.params.num;
 	const {user} = res.locals;
-	let nickname = user.nickname;
 	
 	const existBoard = await Board.find({num: Number(num), password: password});
-	const existComment = await Comment.find({nickname: nickname});
 
 	if(existBoard.length){
 		await Board.deleteOne({ num: Number(num)});
@@ -152,22 +151,11 @@ router.delete("/board/:num",authMiddleware, async(req, res) =>{
 		});	
 	}
 
-	if(existComment.length){
-		await Comment.deleteOne({ nickname: nickname});
-	}else{
-		return res.status(400).json({
-			errorMessage: "뭔가가 잘못됨......제발!!!"
-			
-		});	
-	}
-
 	res.json({success: "게시글이 삭제되었습니다."});
 });
 
 // 댓글 지우기
 router.delete("/comment/:num",authMiddleware, async(req, res) =>{
-	const { num } = req.params;	
-	const { password } = req.body;
 	const postNum = req.params.num;
 	const {user} = res.locals;
 	let nickname = user.nickname;
@@ -175,11 +163,15 @@ router.delete("/comment/:num",authMiddleware, async(req, res) =>{
 	const existComment = await Comment.find({nickname: nickname});
 
 	if(confirm("정말로 삭제하시겠습니까?")){
-		await Comment.deleteOne({ nickname: nickname});
+		if (existComment.length) {
+			await Comment.deleteOne({ nickname: nickname});
+		}
+		
 	}else{
+		return;
 	}
 
-	res.json({success: "게시글이 삭제되었습니다."});
+	res.json({success: "댓글이 삭제되었습니다."});
 });
 
 // 글 수정하기
@@ -203,6 +195,35 @@ router.put("/board/:num",authMiddleware, async (req, res)=>{
 	 res.json({success: "게시글이 수정되었습니다."})
 
 });
+
+//댓글 수정
+router.put("/comment/:num", authMiddleware, async (req, res)=>{
+	const { num } = req.params;	
+	const postNum = req.params.num;
+	const { title } = req.body;
+	const { content } = req.body;
+	const { name } = req.body; 
+	const {user} = res.locals;
+	const { password } = req.body;
+	const comment = await Comment.find({postNum});
+	
+	let nickname = user.nickname;
+
+	const existComment = await Comment.find({nickname: nickname});	
+
+	if(existComment.length){
+		await Board.updateOne({nickname: nickname}, { $set: {comment}}) 	
+	}else{
+		return res.status(400).json({
+			errorMessage: "뭔가 오류가 있는데용?."	
+		});	
+	}
+	
+	 res.json({success: "댓글이 수정되었습니다."})
+
+});
+
+
 
 // 글쓰기!!!!
 router.post("/board",authMiddleware, async (req, res) => {

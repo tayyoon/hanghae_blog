@@ -40,7 +40,12 @@
 // }
 
 
-        $(document).ready(function () {  
+        $(document).ready(function () { 
+            if (localStorage.getItem('token')){
+                 $('#log_out').show();
+             } else {
+                 $('#log_out').hide();
+             }
              show_board();
          });
  
@@ -75,8 +80,7 @@
          function logout () {
             localStorage.clear();
             alert('로그아웃 성공!')
-            window.location.href =  '/';
-            $('#logout').hide();
+            window.location.href =  '/';  
         };
 
 
@@ -91,7 +95,7 @@
         </div>
         <div class="bt_wrap" style="text-align: right; margin-bottom: 5px;"> 
             <a href="/login" class="on" id="login" >로그인</a>
-            <a class="on logout" onclick="logout()" id="logout">로그아웃</a></div>
+            <a class="on logout" onclick="logout()" id="log_out">로그아웃</a></div>
         <div class="board_list_wrap">
             <div class="board_list">
                 <div class="top">
