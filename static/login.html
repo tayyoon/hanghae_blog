@@ -38,6 +38,10 @@
   </style>
 
   <script>
+      if(localStorage.getItem("token")){     
+             alert('이미 로그인이 되어있습니다.')    
+               window.location.href='/'
+            };
 
     function loginEvent() {
         const nickname = $('#nickname').val()

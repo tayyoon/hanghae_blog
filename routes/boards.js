@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const Board = require("../schemas/board");
 const User = require("../schemas/user");
+const Comment = require("../schemas/comment"); 
 const authMiddleware = require("../middlewares/authMiddleware");
 const router = express.Router();
 
@@ -89,24 +90,58 @@ router.get("/board", async (req, res) => {
   res.json({ board });
 });
 
-// 글 상세 조회
-router.get("/board/:num", async (req, res) =>{
+// 댓글조회
+// router.get("/board/:num", async (req, res) => {
+// 	const postNum = req.params.num;
+
+// 	const comment = await Comment.find({postNum});
+// 	res.json({comment});
+// });
+
+// 글 상세 조회, 댓글조회
+router.get("/board/:num",authMiddleware, async (req, res) =>{
   const {num} = req.params;
   console.log(num);
+  const postNum = req.params.num;
+  const {user} = res.locals;
 
+  const comment = await Comment.find({postNum});
   const [board] = await Board.find({ num: Number(num) });
 
   res.json({
+	user,
     board,
+	comment,
   });
 });
+
+// 글 상세조회, 댓글조회 (로그인 시)
+
+// router.get("/board/:num", authMiddleware, async (req, res) =>{
+// 	const {num} = req.params;
+// 	console.log(num);
+// 	const postNum = req.params.num;
+// 	const {user} = res.locals;
+  
+// 	const comment = await Comment.find({postNum});
+// 	const [board] = await Board.find({ num: Number(num) });
+  
+// 	res.json({
+// 	  board,
+// 	  comment,
+// 	});
+//   });
 
 // 글 지우기
 router.delete("/board/:num",authMiddleware, async(req, res) =>{
 	const { num } = req.params;	
 	const { password } = req.body;
+	const postNum = req.params.num;
+	const {user} = res.locals;
+	let nickname = user.nickname;
 	
 	const existBoard = await Board.find({num: Number(num), password: password});
+	const existComment = await Comment.find({nickname: nickname});
 
 	if(existBoard.length){
 		await Board.deleteOne({ num: Number(num)});
@@ -115,6 +150,33 @@ router.delete("/board/:num",authMiddleware, async(req, res) =>{
 			errorMessage: "비밀번호가 다릅니다."
 			
 		});	
+	}
+
+	if(existComment.length){
+		await Comment.deleteOne({ nickname: nickname});
+	}else{
+		return res.status(400).json({
+			errorMessage: "뭔가가 잘못됨......제발!!!"
+			
+		});	
+	}
+
+	res.json({success: "게시글이 삭제되었습니다."});
+});
+
+// 댓글 지우기
+router.delete("/comment/:num",authMiddleware, async(req, res) =>{
+	const { num } = req.params;	
+	const { password } = req.body;
+	const postNum = req.params.num;
+	const {user} = res.locals;
+	let nickname = user.nickname;
+	
+	const existComment = await Comment.find({nickname: nickname});
+
+	if(confirm("정말로 삭제하시겠습니까?")){
+		await Comment.deleteOne({ nickname: nickname});
+	}else{
 	}
 
 	res.json({success: "게시글이 삭제되었습니다."});
@@ -171,13 +233,48 @@ router.post("/board",authMiddleware, async (req, res) => {
 	res.json({ board : "게시판 글쓰기 완료!!" });
 });
 
-// router.get('/users/me',authMiddleware, async (req, res) => {
-// 	const {user} = res.locals;
-// 	// console.log(user)
-// 	res.send({
-// 		user,
-// 	});
-//   });
+// 댓글쓰기
+router.post("/board/:num", authMiddleware, async (req, res) => {
+	let today = new Date();
+	let date = today.toLocaleString()
+
+	const {user} = res.locals;
+	console.log(user)
+	let nickname = user.nickname;
+
+	const postNum = req.params.num;
+	const { comment } = req.body;
+	console.log(postNum);
+
+	if( !comment ) {
+		return res.status(400).json({
+			errorMessage: "댓글을 작성해주세요."
+		});
+	}
+
+	// let comment_num = 0
+	// const comment_ls = await Comment.find();
+	// if(comment_ls.length) {
+	// 	comment_num = comment_ls[comment_ls.length-1]['comment_num'] + 1
+	// }else {
+	// 	comment_num = 1
+	// }
+
+	const createdComment = await Comment.create({ comment, postNum, nickname});
+
+	res.json({ msg : "댓글 등록 완료!!" });
+
+	// comment, date, userId, postNum
+})
+
+
+router.get('/users/me',authMiddleware, async (req, res) => {
+	const {user} = res.locals;
+	// console.log(user)
+	res.send({
+		user,
+	});
+  });
 
 
 // // 게시판 조회 (전체 글 목록 나오도록)

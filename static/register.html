@@ -37,6 +37,12 @@
     </style>
 
     <script>
+
+        if(localStorage.getItem("token")){     
+            alert('이미 로그인이 되어있습니다.')    
+            window.location.href='/'
+        };
+        
         function signUp() {
             let nickname = $('#nickname').val()
             let password = $('#password').val()
@@ -83,7 +89,7 @@
         </div>
         <div class="pushbtn">
             <button type="button" class="btn btn-outline-dark" onclick="signUp()">회원가입</button>
-            <button type="button" class="btn btn-outline-dark" onclick="window.location.href('/login')">취소</button>
+            <button type="button" class="btn btn-outline-dark" onclick="window.location.href='/login'">취소</button>
         </div>
     </div>
   </body>

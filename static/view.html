@@ -4,8 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" 
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <title>항해블로그</title>
     <link rel="stylesheet" href="/style.css">
+
+    <style>
+        .comment_btn {
+            width: 50px;
+            height: 30px;
+            margin-top: 5px;
+            margin-left: 475px;
+        }
+    </style>
 
 
      <script>
@@ -19,14 +30,15 @@
         $(document).ready(function () {  
             view_board();
         });
+
         function view_board() {
 
             $.ajax({
                 type: "GET",
                 url: `/api/board/${num}`,
-                // headers: {
-                //     autorization: `Bearer ${localStorage.getItem('token')}`,
-                // },
+                headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
                 data: {},
                 success: function (response) {
                     console.log(response)
@@ -34,6 +46,7 @@
 
                     let title = rows['title']
                     let num  = rows['num']
+                    console.log(num)
                     let name = rows['name']
                     let date = rows['date'].substring(0,11)  
                     let content = rows['content']                    
@@ -63,7 +76,129 @@
                 
             });
         } 
-        
+        function notion() {
+            if(!localStorage.getItem("token")){     
+             alert('로그인 후 작성 가능!!.')    
+               window.location.href='/login'
+            };
+        }
+
+        $(document).ready(function () {  
+             show_comment();
+             if (!localStorage.getItem('token')){
+                 show_comment
+             }
+         });
+
+        // function getSelf(callback) {
+        // $.ajax({
+        //     type: "GET",
+        //     url: "/api/users/me",
+        //     headers: {
+        //     authorization: `Bearer ${localStorage.getItem("token")}`,
+        //     },
+        //     success: function (response) {
+        //     callback(response.user);
+        //     },
+        //     error: function (xhr, status, error) {
+        //     if (status == 401) {
+        //         alert("로그인이 필요합니다.");
+        //     } else {
+        //         localStorage.clear();
+        //         alert("알 수 없는 문제가 발생했습니다. 관리자에게 문의하세요.");
+        //     }
+        //     window.location.href = "/";
+        //     },
+        // });
+        // }
+
+         function posting_comment(){
+            let comment_give = $('#floatingTextarea').val();         
+            
+            console.log(comment_give)
+             $.ajax({
+                 type: "POST",
+                 url: `/api/board/${num}`,
+                 contentType: "application/json",
+                 headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                 data: JSON.stringify({
+                    comment : comment_give,
+                 }),                 
+                 success: function (response) {
+                     alert(response['msg'])                  
+                     window.location.href = `/board/?num=${num}`
+                 },
+                 error:function(request,status,error){
+                        alert("code = "+ request.status + " message = " + request.responseText + " error = " + error); // 실패 시 처리
+                    }           
+            });
+         }
+ 
+         function show_comment() {
+             $.ajax({
+                 type: "GET",
+                 url: `/api/board/${num}`,
+                 headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                 data: {},
+                 success: function (response) {                    
+                     let rows = response['comment']
+                     let user = response['user']
+                     console.log(rows)
+                     console.log(rows[0].nickname)
+                     for (let i = rows.length-1; i > -1; i--) {
+                         let comment = rows[i]['comment']
+                         let nickname = rows[i]['nickname']
+                        //  let date = rows[i]['date'].substring(0,11)
+                        //  console.log(date)
+                         console.log(user)
+                         console.log(comment)
+                         console.log(user.nickname)
+                         
+ 
+                         let temp_html = ``
+                            
+                        if (user.nickname === nickname) {
+                            temp_html = `<li class="list-group-item">${comment} 
+                            <button type="button" class="btn btn-outline-secondary" style=
+                            "float: right">수정</button>
+                            <button type="button" class="btn btn-outline-secondary" style=
+                            "float: right" onclick="delete_comment()">삭제</button>
+                            </li>`
+                        } else {
+                            temp_html = `<li class="list-group-item">${comment} 
+                            </li>`
+                        }
+                                         
+                     $('#comment_view').append(temp_html)
+                     }
+                 }
+             });
+         } 
+         
+         function delete_comment(){
+             $.ajax({
+                 type: "DELETE",
+                 url: `/api/comment/${num}`,
+                 contentType: "application/json",
+                 headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                 data: JSON.stringify({            
+                 }),                 
+                 success: function (response) {
+                     alert(response["success"])                  
+                     window.location.href = `/board/num=${num}`
+                 },
+                 error:function(request,status,error){
+                     alert(request.responseText)
+                    }           
+            });
+         }
+
     </script>
 </head>
 <body>
@@ -108,6 +243,41 @@
                 <a href="#" onclick="window.location.href = `edit/?num=${num}`">수정</a>             
             </div>
         </div>
+        <div class="form-floating" style="margin-top: 15px;">
+            <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea" onclick="notion()"></textarea>
+            <label for="floatingTextarea" >Comments</label>
+            <button type="button" class="btn btn-outline-secondary comment_btn" onclick="posting_comment()"> 등록</button>
+          </div>
+          <!-- <div id="comment_view" class="board_view"> -->
+            <ul class="list-group list-group-flush" id="comment_view">
+              </ul>
+            <!-- <div class="title">
+                글 제목이 들어갑니다.
+            </div>
+            <div class="info">
+                <dl>
+                    <dt>번호</dt>
+                    <dd>1</dd>
+                </dl>
+                <dl>
+                    <dt>글쓴이</dt>
+                    <dd>김이름</dd>
+                </dl>
+                <dl>
+                    <dt>작성일</dt>
+                    <dd>2021.1.16</dd>
+                </dl>                    
+            </div>
+            <div class="cont">
+                글 내용이 들어갑니다<br>
+                글 내용이 들어갑니다<br>
+                글 내용이 들어갑니다<br>
+                글 내용이 들어갑니다<br>
+                글 내용이 들어갑니다<br>
+                글 내용이 들어갑니다<br>
+                글 내용이 들어갑니다<br>
+                글 내용이 들어갑니다
+            </div> -->
     </div>
 </body>
 </html>
