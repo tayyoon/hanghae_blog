@@ -23,9 +23,11 @@ module.exports = (req, res, next) => {
 
         User.findById(userId).exec().then((user) => {
             res.locals.user = user;
+            
             next();
         });
     } catch (error) {
+        console.log('여기서 에러!!')
         res.status(401).send({
             errorMessage: "로그인하고 사용하세요!!!",
         });

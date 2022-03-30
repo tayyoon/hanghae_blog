@@ -20,36 +20,45 @@
 
 
      <script>
-         const quaryString = window.location.search;
-         console.log(quaryString)
-         const urlParams = new URLSearchParams(quaryString);
-         console.log(urlParams)
-         const num = urlParams.get("num");
-         console.log(num)
+        //  const quaryString = window.location.search;
+        //  console.log(quaryString)
+        //  const urlParams = new URLSearchParams(quaryString);
+        //  console.log(urlParams)
+        //  const num = urlParams.get("num");
+        
+
          
+
         $(document).ready(function () {  
             view_board();
+            if(!localStorage.getItem("token")){     
+                show_comment_xlogin();  
+            }else {
+                show_comment_login();
+            }
         });
+        
 
         function view_board() {
-
+            let num = new URLSearchParams(location.search).get('num');
             $.ajax({
                 type: "GET",
-                url: `/api/board/${num}`,
-                headers: {
-                    authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
+                url: `/api/boards?num=${num}`,
+                // headers: {
+                //     authorization: `Bearer ${localStorage.getItem('token')}`,
+                // },
                 data: {},
                 success: function (response) {
-                    console.log(response)
-                    let rows = response['board']    
+                    let board = response["board"]
+                    let comment = response["comment"]
+                    console.log(board)
 
-                    let title = rows['title']
-                    let num  = rows['num']
-                    console.log(num)
-                    let name = rows['name']
-                    let date = rows['date'].substring(0,11)  
-                    let content = rows['content']                    
+                    let title = board[0]['title']
+                    let num  = board[0]['num']
+                    // console.log(num)
+                    let name = board[0]['name']
+                    let date = board[0]['date']  
+                    let content = board[0]['content']                    
 
                         let temp_html =`<div class="title">
                                             ${title}
@@ -70,6 +79,10 @@
                                         </div>
                                         <div class="cont">
                                          ${content}
+                                        </div>
+                                        <div class="bt_wrap">
+                                            <a href="/" class="on">목록</a>
+                                            <a href="edit?num=${num}">수정</a>             
                                         </div>`                                                                                                  
                     $('#board_view').append(temp_html)
                     }
@@ -83,12 +96,7 @@
             };
         }
 
-        $(document).ready(function () {  
-             show_comment();
-             if (!localStorage.getItem('token')){
-                 show_comment
-             }
-         });
+        
 
         // function getSelf(callback) {
         // $.ajax({
@@ -113,12 +121,13 @@
         // }
 
          function posting_comment(){
-            let comment_give = $('#floatingTextarea').val();         
+            let comment_give = $('#floatingTextarea').val();
+            let num = new URLSearchParams(location.search).get('num');       
             
-            console.log(comment_give)
+            // console.log(comment_give)
              $.ajax({
                  type: "POST",
-                 url: `/api/board/${num}`,
+                 url: `/api/boards?postNum=${num}`,
                  contentType: "application/json",
                  headers: {
                     authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -136,42 +145,32 @@
             });
          }
  
-         function show_comment() {
+         function show_comment_xlogin() {
+            let num = new URLSearchParams(location.search).get('num');
+
              $.ajax({
                  type: "GET",
-                 url: `/api/board/${num}`,
-                 headers: {
-                    authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
+                 url: `/api/boards?num=${num}`,
+                //  headers: {
+                //     authorization: `Bearer ${localStorage.getItem('token')}`,
+                // },
                  data: {},
                  success: function (response) {                    
                      let rows = response['comment']
-                     let user = response['user']
-                     console.log(rows)
-                     console.log(rows[0].nickname)
+                    //  let user = response['user']
+                    //  console.log(user)
+                    //  console.log(rows)
                      for (let i = rows.length-1; i > -1; i--) {
                          let comment = rows[i]['comment']
                          let nickname = rows[i]['nickname']
-                        //  let date = rows[i]['date'].substring(0,11)
-                        //  console.log(date)
-                         console.log(user)
-                         console.log(comment)
-                         console.log(user.nickname)
-                         
+                         let commentNum = rows[i]['commentNum']
+                        //  console.log(user)
+                        //  console.log(comment)
+                        //  console.log(user.nickname)
+                        //  console.log(nickname)
  
-                         let temp_html = ``
-                            
-                        if (user.nickname === nickname) {
-                            temp_html = `<li class="list-group-item">${comment} 
-                            <button type="button" class="btn btn-outline-secondary" style=
-                            "float: right" onclick="edit_comment()">수정</button>
-                            <button type="button" class="btn btn-outline-secondary" style=
-                            "float: right" onclick="delete_comment()">삭제</button>
+                        let temp_html = `<li class="list-group-item">${comment} 
                             </li>`
-                        } else {
-                            temp_html = `<li class="list-group-item">${comment} 
-                            </li>`
-                        }
                                          
                      $('#comment_view').append(temp_html)
                      }
@@ -179,35 +178,80 @@
              });
          } 
          
-         $(document).ready(function () {  
-            edit_board();
-        });
-        function edit_comment() {
 
-            $.ajax({
-                type: "GET",
-                url: `/api/board/${num}`,
+         function show_comment_login() {
+            let num = new URLSearchParams(location.search).get('num');
+
+             $.ajax({
+                 type: "GET",
+                 url: `/api/comment?num=${num}`,
                  headers: {
                     authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-                data: {},
+                 data: {},
+                 success: function (response) {                    
+                     let rows = response['comment']
+                     let user = response['user']
+                     
+                    //  console.log(rows)
+                     for (let i = rows.length-1; i > -1; i--) {
+                         let comment = rows[i]['comment']
+                         let nickname = rows[i]['nickname']
+                         let commentNum = rows[i]['commentNum']
+                        //  console.log(user)
+                        //  console.log(comment)
+                        //  console.log(user.nickname)
+                        //  console.log(nickname)
+                        
+                        let temp_html=``
+                        if (user.nickname === nickname){
+                            temp_html =  `<li class="list-group-item">${comment} 
+                            <button type="button" class="btn btn-outline-secondary" style=
+                            "float: right" onclick="edit_comment(${commentNum})">수정</button>
+                            <button type="button" class="btn btn-outline-secondary" style=
+                            "float: right" onclick="delete_btn(${commentNum})">삭제</button>
+                            </li>`
+                        }else {
+                            temp_html = `<li class="list-group-item">${comment}</li>`
+                        }
+                     $('#comment_view').append(temp_html)
+                     }
+                 }
+             });
+         } 
+         
+
+        //  $(document).ready(function () {  
+        //     edit_board();
+        // });
+
+        function edit_comment(commentNum) {
+            const userToken = localStorage.getItem("token");
+            const comment_view = $("#comment_view");
+            let commetNum = commentNum
+            console.log('xx')
+            console.log(commentNum)
+            $.ajax({
+                type: "POST",
+                url: `/api/comment`,
+                 headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                data: {
+                    commentNum: commentNum,
+                    userToken: userToken,
+                },
                 success: function (response) {
                     console.log(response)
                     let rows = response['comment']
-                    let user = response['user'] 
-
-                    let comment = rows['comment']
-
-                    let temp_html = ``
-                                  
-                    if (rows._id === this._id) {
-                        let comment = rows.find({_id: this._id}).comment
-                        temp_html =`<textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea" onclick="notion()"></textarea>
-                                                            <label for="floatingTextarea" >${comment}</label>
+                    let comment = rows[0]['comment']
+                    // let user = response['user'] 
+                    // let nickname = user.nickname
+                    
+                    let temp_html = `<textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea_comment" onclick="notion()">${comment}</textarea>
                                                     <button type="button" class="btn btn-outline-secondary" style=
-                                                    "float: right" onclick="update_comment()">저장</button>
+                                                    "float: right" onclick="update_comment(${commentNum})">저장</button>
                                                     </li>`
-                    }
                                                                                                                      
                     $('#comment_view').append(temp_html)
                     }
@@ -215,19 +259,20 @@
             });
         }           
 
-        function update_comment(){
-            let comment_give = $('#comment').val();        
-            
-            console.log(comment_give)
+        function update_comment(num){
+            let comment_give = $('#floatingTextarea_comment').val();     
+            let commentNum = num;   
+
              $.ajax({
                  type: "PUT",
-                 url: `/api/comment/${num}`,
+                 url: `/api/updatecomment`,
                  contentType: "application/json",
                  headers: {
                     authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                  data: JSON.stringify({
                     comment: comment_give,
+                    commentNum: commentNum,
                  }),                 
                  success: function (response) {
                      alert(response["success"])                  
@@ -240,24 +285,38 @@
          }
 
 
-         function delete_comment(){
+         function delete_comment(commentNum){
+             const comment_num = commentNum
+             let num = new URLSearchParams(location.search).get('num');
+
              $.ajax({
                  type: "DELETE",
-                 url: `/api/comment/${num}`,
+                 url: `/api/comment`,
                  contentType: "application/json",
                  headers: {
                     authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-                 data: JSON.stringify({            
+                 data: JSON.stringify({  
+                     commentNum: comment_num,         
                  }),                 
                  success: function (response) {
                      alert(response["success"])                  
-                     window.location.href = `/board/num=${num}`
+                     window.location.href = `/board/?num=${num}`
                  },
                  error:function(request,status,error){
                      alert(request.responseText)
                     }           
             });
+         }
+         
+         function delete_btn(comment_num) {
+             let commentNum = comment_num
+            if (confirm('진짜로 삭제 할꺼야?')) {
+                delete_comment(commentNum);
+            }else {
+                alert('삭제를 원치 않네!')
+                return;
+            }
          }
 
     </script>
@@ -272,37 +331,12 @@
         <div class="board_view_wrap">
             <div id="board_view" class="board_view">
                 <!-- <div class="title">
-                    글 제목이 들어갑니다.
-                </div>
-                <div class="info">
-                    <dl>
-                        <dt>번호</dt>
-                        <dd>1</dd>
-                    </dl>
-                    <dl>
-                        <dt>글쓴이</dt>
-                        <dd>김이름</dd>
-                    </dl>
-                    <dl>
-                        <dt>작성일</dt>
-                        <dd>2021.1.16</dd>
-                    </dl>                    
-                </div>
-                <div class="cont">
-                    글 내용이 들어갑니다<br>
-                    글 내용이 들어갑니다<br>
-                    글 내용이 들어갑니다<br>
-                    글 내용이 들어갑니다<br>
-                    글 내용이 들어갑니다<br>
-                    글 내용이 들어갑니다<br>
-                    글 내용이 들어갑니다<br>
-                    글 내용이 들어갑니다
                 </div> -->
             </div>
-            <div class="bt_wrap">
+            <!-- <div class="bt_wrap">
                 <a href="/" class="on">목록</a>
-                <a href="#" onclick="window.location.href = `edit/?num=${num}`">수정</a>             
-            </div>
+                <a href="'/api/edit?PostId=${PostId}" onclick="location.href = '/api/edit?PostId=${PostId}' ">수정</a>             
+            </div> -->
         </div>
         <div class="form-floating" style="margin-top: 15px;">
             <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea" onclick="notion()"></textarea>
@@ -313,31 +347,6 @@
             <ul class="list-group list-group-flush" id="comment_view">
               </ul>
             <!-- <div class="title">
-                글 제목이 들어갑니다.
-            </div>
-            <div class="info">
-                <dl>
-                    <dt>번호</dt>
-                    <dd>1</dd>
-                </dl>
-                <dl>
-                    <dt>글쓴이</dt>
-                    <dd>김이름</dd>
-                </dl>
-                <dl>
-                    <dt>작성일</dt>
-                    <dd>2021.1.16</dd>
-                </dl>                    
-            </div>
-            <div class="cont">
-                글 내용이 들어갑니다<br>
-                글 내용이 들어갑니다<br>
-                글 내용이 들어갑니다<br>
-                글 내용이 들어갑니다<br>
-                글 내용이 들어갑니다<br>
-                글 내용이 들어갑니다<br>
-                글 내용이 들어갑니다<br>
-                글 내용이 들어갑니다
             </div> -->
     </div>
 </body>

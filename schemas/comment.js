@@ -1,16 +1,20 @@
 const mongoose = require("mongoose");
 
 const commentSchema = new mongoose.Schema({
-    comment: {
-        type: String,
-        required: true,
-    },
     nickname: {
         type: String,
         required: true,
     },
-    postNum: {
+    comment: {
         type: String,
+        required: true,
+    },
+    commentNum: {
+        type: Number,
+        required: true,
+    },
+    postNum: {
+        type: Number,
         required: true,
     },
 });

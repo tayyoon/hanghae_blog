@@ -3,13 +3,22 @@ const jwt = require("jsonwebtoken");
 const Board = require("../schemas/board");
 const User = require("../schemas/user");
 const Comment = require("../schemas/comment"); 
+const Joi = require("joi");
 const authMiddleware = require("../middlewares/authMiddleware");
+const comment = require("../schemas/comment");
 const router = express.Router();
 
 
 router.get("/", (req, res) => {
     res.send("thie is root page");
 });
+
+// vailidation
+const postUsersSchema = Joi.object({
+	nickname: Joi.string().alpahnum().min(3).required(),
+	password: Joi.string().alpahnum().min(4).required(),
+	confirmPassword: Joi.string().required(),
+  });
 
 // 회원가입
 router.post('/users', async (req, res) => {
@@ -99,35 +108,42 @@ router.get("/board", async (req, res) => {
 // });
 
 // 글 상세 조회, 댓글조회
-router.get("/board/:num",authMiddleware, async (req, res) =>{
-  const {num} = req.params;
+router.get("/boards", async (req, res) =>{
+//   const {num} = req.params;
+  const num = req.query.num;
   console.log(num);
-  const postNum = req.params.num;
-  const {user} = res.locals;
-
-  const comment = await Comment.find({postNum});
-  const [board] = await Board.find({ num: Number(num) });
-
+//   const {user} = res.locals;
+//   const commentNum = req.body.commentNum; get body 못옴
+  const comment = await Comment.find({postNum: Number(num)});
+  const board = await Board.find({ num: Number(num) });
+	
   res.json({
-	user,
     board,
 	comment,
   });
 });
 
-// 글 상세조회, 댓글조회 (로그인 시)
-
-router.get("/comment/:num", authMiddleware, async (req, res) =>{
+router.get("/board/:num", async (req, res) => {
 	const {num} = req.params;
-	console.log(num);
-	const postNum = req.params.num;
+
+	const [board] = await Board.find({num: Number(num)})
+	
+	res.json({ board });
+
+})
+
+  // 댓글조회 (로그인 O)
+
+  router.get("/comment", authMiddleware, async (req, res) =>{
+	const {num} = req.query;
 	const {user} = res.locals;
 	let nickname = user.nickname;
   
-	const comment = await Comment.find({postNum, nickname: nickname});
+	const comment = await Comment.find({postNum: Number(num)});
 	const [board] = await Board.find({ num: Number(num) });
   
 	res.json({
+		user,
 	  board,
 	  comment,
 	});
@@ -155,18 +171,18 @@ router.delete("/board/:num",authMiddleware, async(req, res) =>{
 });
 
 // 댓글 지우기
-router.delete("/comment/:num",authMiddleware, async(req, res) =>{
-	const postNum = req.params.num;
-	const {user} = res.locals;
-	let nickname = user.nickname;
+router.delete("/comment",authMiddleware, async(req, res) =>{
+	// const postNum = req.params.num;
+	// console.log(postNum)
+	// const {user} = res.locals;
+	// let nickname = user.nickname;
+	const {commentNum} = req.body;
 	
-	const existComment = await Comment.find({nickname: nickname});
+	const existComment = await Comment.find({commentNum: commentNum});
 
-	if(confirm("정말로 삭제하시겠습니까?")){
-		if (existComment.length) {
-			await Comment.deleteOne({ nickname: nickname});
-		}
-		
+	
+	if (existComment.length) {
+		await Comment.deleteOne({ commentNum: commentNum});
 	}else{
 		return;
 	}
@@ -196,32 +212,54 @@ router.put("/board/:num",authMiddleware, async (req, res)=>{
 
 });
 
-//댓글 수정
-router.put("/comment/:num", authMiddleware, async (req, res)=>{
+//댓글 수정 가져오기
+router.post("/comment", authMiddleware, async (req, res)=>{
+	
+	const {commentNum} = req.body;
+
+	// const comment = await Comment.find({postNum});
+	
+	// let nickname = user.nickname;
+
+	const comment = await Comment.find({commentNum: commentNum});	
+
+	// if(existComment.length){
+	// 	await Board.updateOne({commentNum: commentNum}, { $set: {comment}}) 	
+	// }else{
+	// 	return res.status(400).json({
+	// 		errorMessage: "뭔가 오류가 있는데용?."	
+	// 	});	
+	// }
+	
+	 res.json({
+		 comment,
+		})
+
+});
+
+//댓글 수정 업데이트하기
+router.put("/updatecomment",authMiddleware, async (req, res)=>{
 	const { num } = req.params;	
-	const postNum = req.params.num;
 	const { title } = req.body;
 	const { content } = req.body;
 	const { name } = req.body; 
-	const {user} = res.locals;
 	const { password } = req.body;
-	const comment = await Comment.find({postNum});
-	
-	let nickname = user.nickname;
+	const {comment, commentNum} = req.body;
 
-	const existComment = await Comment.find({nickname: nickname});	
+	const existComment = await Comment.find({commentNum: commentNum});	
 
 	if(existComment.length){
-		await Board.updateOne({nickname: nickname}, { $set: {comment}}) 	
+		await Comment.updateOne({commentNum: commentNum}, { $set: {comment}}) 	
 	}else{
 		return res.status(400).json({
-			errorMessage: "뭔가 오류가 있는데용?."	
+			errorMessage: "잘못된 접근 입니다!!!"	
 		});	
 	}
 	
 	 res.json({success: "댓글이 수정되었습니다."})
 
 });
+
 
 
 
@@ -255,17 +293,13 @@ router.post("/board",authMiddleware, async (req, res) => {
 });
 
 // 댓글쓰기
-router.post("/board/:num", authMiddleware, async (req, res) => {
-	let today = new Date();
-	let date = today.toLocaleString()
+router.post("/boards", authMiddleware, async (req, res) => {
+	let {postNum} = req.query;
 
 	const {user} = res.locals;
-	console.log(user)
 	let nickname = user.nickname;
 
-	const postNum = req.params.num;
 	const { comment } = req.body;
-	console.log(postNum);
 
 	if( !comment ) {
 		return res.status(400).json({
@@ -273,15 +307,22 @@ router.post("/board/:num", authMiddleware, async (req, res) => {
 		});
 	}
 
-	// let comment_num = 0
+	// let commentNum = 0
 	// const comment_ls = await Comment.find();
 	// if(comment_ls.length) {
-	// 	comment_num = comment_ls[comment_ls.length-1]['comment_num'] + 1
+	// 	commentNum = comment_ls[comment_ls.length-1]['commentNum'] + 1
 	// }else {
-	// 	comment_num = 1
+	// 	commentNum = 1
 	// }
 
-	const createdComment = await Comment.create({ comment, postNum, nickname});
+	const CryptoJS = require('crypto-js');
+	const moment = require('moment');
+	require('moment-timezone');
+	moment.tz.setDefault('Asia/Seoul');
+	const NowDate = String(moment().format('YYYY-MM-DD HH:mm:ss'));
+	const commentNum = CryptoJS.SHA256(NowDate)['words'][0];
+
+	const createdComment = await Comment.create({ comment, postNum, nickname, commentNum});
 
 	res.json({ msg : "댓글 등록 완료!!" });
 
