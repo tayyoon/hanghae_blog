@@ -15,8 +15,8 @@ router.get("/", (req, res) => {
 
 // vailidation
 const postUsersSchema = Joi.object({
-	nickname: Joi.string().alpahnum().min(3).required(),
-	password: Joi.string().alpahnum().min(4).required(),
+	nickname: Joi.string().alphanum().min(3).required(),
+	password: Joi.string().alphanum().min(4).required(),
 	confirmPassword: Joi.string().required(),
   });
 
@@ -99,15 +99,9 @@ router.get("/board", async (req, res) => {
   res.json({ board });
 });
 
-// 댓글조회
-// router.get("/board/:num", async (req, res) => {
-// 	const postNum = req.params.num;
 
-// 	const comment = await Comment.find({postNum});
-// 	res.json({comment});
-// });
 
-// 글 상세 조회, 댓글조회
+// 글 상세 조회
 router.get("/boards", async (req, res) =>{
 //   const {num} = req.params;
   const num = req.query.num;
@@ -131,24 +125,6 @@ router.get("/board/:num", async (req, res) => {
 	res.json({ board });
 
 })
-
-  // 댓글조회 (로그인 O)
-
-  router.get("/comment", authMiddleware, async (req, res) =>{
-	const {num} = req.query;
-	const {user} = res.locals;
-	let nickname = user.nickname;
-  
-	const comment = await Comment.find({postNum: Number(num)});
-	const [board] = await Board.find({ num: Number(num) });
-  
-	res.json({
-		user,
-	  board,
-	  comment,
-	});
-  });
-
 // 글 지우기
 router.delete("/board/:num",authMiddleware, async(req, res) =>{
 	const { num } = req.params;	
@@ -170,26 +146,6 @@ router.delete("/board/:num",authMiddleware, async(req, res) =>{
 	res.json({success: "게시글이 삭제되었습니다."});
 });
 
-// 댓글 지우기
-router.delete("/comment",authMiddleware, async(req, res) =>{
-	// const postNum = req.params.num;
-	// console.log(postNum)
-	// const {user} = res.locals;
-	// let nickname = user.nickname;
-	const {commentNum} = req.body;
-	
-	const existComment = await Comment.find({commentNum: commentNum});
-
-	
-	if (existComment.length) {
-		await Comment.deleteOne({ commentNum: commentNum});
-	}else{
-		return;
-	}
-
-	res.json({success: "댓글이 삭제되었습니다."});
-});
-
 // 글 수정하기
 router.put("/board/:num",authMiddleware, async (req, res)=>{
 	const { num } = req.params;	
@@ -207,61 +163,8 @@ router.put("/board/:num",authMiddleware, async (req, res)=>{
 			errorMessage: "비밀번호가 다릅니다."	
 		});	
 	}
-	
 	 res.json({success: "게시글이 수정되었습니다."})
-
 });
-
-//댓글 수정 가져오기
-router.post("/comment", authMiddleware, async (req, res)=>{
-	
-	const {commentNum} = req.body;
-
-	// const comment = await Comment.find({postNum});
-	
-	// let nickname = user.nickname;
-
-	const comment = await Comment.find({commentNum: commentNum});	
-
-	// if(existComment.length){
-	// 	await Board.updateOne({commentNum: commentNum}, { $set: {comment}}) 	
-	// }else{
-	// 	return res.status(400).json({
-	// 		errorMessage: "뭔가 오류가 있는데용?."	
-	// 	});	
-	// }
-	
-	 res.json({
-		 comment,
-		})
-
-});
-
-//댓글 수정 업데이트하기
-router.put("/updatecomment",authMiddleware, async (req, res)=>{
-	const { num } = req.params;	
-	const { title } = req.body;
-	const { content } = req.body;
-	const { name } = req.body; 
-	const { password } = req.body;
-	const {comment, commentNum} = req.body;
-
-	const existComment = await Comment.find({commentNum: commentNum});	
-
-	if(existComment.length){
-		await Comment.updateOne({commentNum: commentNum}, { $set: {comment}}) 	
-	}else{
-		return res.status(400).json({
-			errorMessage: "잘못된 접근 입니다!!!"	
-		});	
-	}
-	
-	 res.json({success: "댓글이 수정되었습니다."})
-
-});
-
-
-
 
 // 글쓰기!!!!
 router.post("/board",authMiddleware, async (req, res) => {
@@ -290,6 +193,91 @@ router.post("/board",authMiddleware, async (req, res) => {
 	const createdBoard = await Board.create({ title, name, password, content, num, date });
 
 	res.json({ board : "게시판 글쓰기 완료!!" });
+});
+
+  // 댓글조회 (로그인 O)
+
+  router.get("/comment", authMiddleware, async (req, res) =>{
+	const {num} = req.query;
+	const {user} = res.locals;
+	let nickname = user.nickname;
+  
+	const comment = await Comment.find({postNum: Number(num)});
+	const [board] = await Board.find({ num: Number(num) });
+  
+	res.json({
+		user,
+	  board,
+	  comment,
+	});
+  });
+
+// 댓글 지우기
+router.delete("/comment",authMiddleware, async(req, res) =>{
+	// const postNum = req.params.num;
+	// console.log(postNum)
+	// const {user} = res.locals;
+	// let nickname = user.nickname;
+	const {commentNum} = req.body;
+	
+	const existComment = await Comment.find({commentNum: commentNum});
+
+	
+	if (existComment.length) {
+		await Comment.deleteOne({ commentNum: commentNum});
+	}else{
+		return;
+	}
+
+	res.json({success: "댓글이 삭제되었습니다."});
+});
+
+
+//댓글 수정 가져오기
+router.post("/comment", authMiddleware, async (req, res)=>{
+	
+	const {commentNum} = req.body;
+
+	// const comment = await Comment.find({postNum});
+	
+	// let nickname = user.nickname;
+
+	const comment = await Comment.find({commentNum: commentNum});	
+
+	// if(existComment.length){
+	// 	await Board.updateOne({commentNum: commentNum}, { $set: {comment}}) 	
+	// }else{
+	// 	return res.status(400).json({
+	// 		errorMessage: "뭔가 오류가 있는데용?."	
+	// 	});	
+	// }
+	
+	 res.json({
+		 comment,
+		})
+});
+
+//댓글 수정 업데이트하기
+router.put("/updatecomment",authMiddleware, async (req, res)=>{
+	const { num } = req.params;	
+	const { title } = req.body;
+	const { content } = req.body;
+	const { name } = req.body; 
+	const { password } = req.body;
+	const {comment, commentNum} = req.body;
+
+	const existComment = await Comment.find({commentNum: commentNum});	
+
+	if(existComment.length){
+		await Comment.updateOne({commentNum: commentNum}, { $set: {comment}}) 	
+	}else{
+		return res.status(400).json({
+			errorMessage: "잘못된 접근 입니다!!!"	
+		});	
+	}
+	
+	 res.json({success: "댓글이 수정되었습니다."})
+
 });
 
 // 댓글쓰기
